@@ -40,7 +40,7 @@ function get_files () {
 }
 
 function rust_cargo () {
-    local dst=$2
+    local manifest="$2"
     local target="${DIR}/${1}"
     local tmp_dir
     tmp_dir=$(mktemp -d)
@@ -50,7 +50,7 @@ function rust_cargo () {
         echo "DANGER: expected empty directory '$tmp_dir'" 1>&2
         exit 1
     fi
-    cargo doc --no-deps --manifest-path $dst --target-dir "$tmp_dir"
+    cargo doc --no-deps --manifest-path $manifest --target-dir "$tmp_dir"
     mv "${tmp_dir}/doc" "$target"
     echo "Created ${target}"
     if [[ -f "${tmp_dir}/.rustc_info.json" ]]; then
@@ -62,12 +62,20 @@ function rust_cargo () {
     fi
 }
 
+function jl_make () {
+    local make_file="$2"
+    local target="${DIR}/${1}"
+    julia -- "$make_file"
+    mv "$(dirname "${make_file}")/build/" "$target"
+    echo "Created ${target}"
+}
+
 function usage() {
     echo "Usage:"
-    echo " $0 [path...]      Get docs for the specified 'Cargo.toml'"
-    echo " $0 clean          Place previous buillds in directory '_CLEANED'"
+    echo " $(basename "$0") [paths...]      Get docs for the specified 'Cargo.toml' for Rust or 'make.jl' for Julia"
+    echo " $(basename "$0") clean           Place previous buillds in directory '_CLEANED'"
     echo "where:"
-    echo " path: path to a Cargo.toml"
+    echo " paths: path to a Cargo.toml"
 }
 
 function run() {
@@ -99,6 +107,7 @@ function run() {
             exit 0
             ;;
         *)
+            local -a projects langs
             if [[ ${#trash_files[@]} -gt 0 ]]; then
                 echo "Run \`$0 clean\` ... found files:" 1>&2
                 printf '%s\n' "${trash_files[@]}"
@@ -106,21 +115,33 @@ function run() {
             fi
 
             # check inputs
-            for cargo_toml in "${ARGS[@]}"; do
-                if [[ "${cargo_toml##*.}" != "toml" ]]; then
+            local project_path
+            for project_path in "${ARGS[@]}"; do
+                if [[ "$(basename "$project_path")" == "Cargo.toml" ]]; then
+                    langs+=("rust")
+                    projects+=("$(awk -F'[ ="]+' '$1 == "name" { print $2 }' $project_path)")
+                elif [[ "$(basename "$project_path")" == "make.jl" ]]; then
+                    langs+=("julia")
+                    projects+=("$(awk -F'[][]' '/modules/ { print $2 }' $project_path)")
+                else
                     usage 1>&2
                     exit 1
                 fi
-                projects+=("$(awk -F'[ ="]+' '$1 == "name" { print $2 }' $cargo_toml)")
             done
 
             echo "Found projects:"
-            local path proj
+            local lang proj path
             for ii in $(seq 0 $((${#ARGS[@]} - 1)) ); do
+                lang="${langs[${ii}]}"
                 proj="${projects[${ii}]}"
                 path="$( realpath -e "${ARGS[${ii}]}" )"
-                echo "$proj => $path"
-                rust_cargo "$proj" "$path"
+                echo "$lang: $proj => $path"
+                if [[ "$lang" == "rust" ]]; then
+                    rust_cargo "$proj" "$path"
+                elif [[ "$lang" == "julia" ]]; then
+                    jl_make "$proj" "$path"
+                fi
+                printf "\n"
             done
             ;;
     esac

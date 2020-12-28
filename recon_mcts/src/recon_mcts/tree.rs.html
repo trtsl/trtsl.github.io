@@ -1,4 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/tree.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tree.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../recon_mcts/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/tree.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tree.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../recon_mcts/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1798,6 +1801,34 @@
 <span id="1798">1798</span>
 <span id="1799">1799</span>
 <span id="1800">1800</span>
+<span id="1801">1801</span>
+<span id="1802">1802</span>
+<span id="1803">1803</span>
+<span id="1804">1804</span>
+<span id="1805">1805</span>
+<span id="1806">1806</span>
+<span id="1807">1807</span>
+<span id="1808">1808</span>
+<span id="1809">1809</span>
+<span id="1810">1810</span>
+<span id="1811">1811</span>
+<span id="1812">1812</span>
+<span id="1813">1813</span>
+<span id="1814">1814</span>
+<span id="1815">1815</span>
+<span id="1816">1816</span>
+<span id="1817">1817</span>
+<span id="1818">1818</span>
+<span id="1819">1819</span>
+<span id="1820">1820</span>
+<span id="1821">1821</span>
+<span id="1822">1822</span>
+<span id="1823">1823</span>
+<span id="1824">1824</span>
+<span id="1825">1825</span>
+<span id="1826">1826</span>
+<span id="1827">1827</span>
+<span id="1828">1828</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">type_complexity</span>)]</span>
 
@@ -1814,8 +1845,10 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::{<span class="ident">AtomicBool</span>, <span class="ident">AtomicUsize</span>, <span class="ident">Ordering</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">RwLock</span>, <span class="ident">Weak</span>};
 
+<span class="doccomment">/// Convenience type alias.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">TreeAlias</span><span class="op">&lt;</span><span class="ident">GD</span>, <span class="ident">M</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Tree</span><span class="op">&lt;</span><span class="ident">NodeAlias</span><span class="op">&lt;</span><span class="ident">GD</span>, <span class="ident">M</span><span class="op">&gt;</span>, <span class="ident">GD</span><span class="op">&gt;</span>;
 
+<span class="doccomment">/// Convenience type alias.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NodeAlias</span><span class="op">&lt;</span><span class="ident">GD</span>, <span class="ident">M</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Node</span><span class="op">&lt;</span>
     <span class="ident">GD</span>,
     <span class="op">&lt;</span><span class="ident">GD</span> <span class="kw">as</span> <span class="ident">GameDynamics</span><span class="op">&gt;</span>::<span class="ident">State</span>,
@@ -2100,11 +2133,18 @@
 <span class="doccomment">/// Contains information about a specific `Node`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NodeInfo</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">P</span>, <span class="ident">Q</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// The depth of the `Node` in the `Tree`.</span>
     <span class="kw">pub</span> <span class="ident">depth</span>: <span class="ident">usize</span>,
+    <span class="doccomment">/// The state of the `Node`, which is possibly `None` depending on the [`state_memory`]</span>
+    <span class="doccomment">/// configuration.</span>
     <span class="kw">pub</span> <span class="ident">state</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The player taking an action at this `Node`.</span>
     <span class="kw">pub</span> <span class="ident">player</span>: <span class="ident">P</span>,
+    <span class="doccomment">/// The score of the `Node` as evaluated by the player.</span>
     <span class="kw">pub</span> <span class="ident">score</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Q</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The number of direct parent `Node`s this `Node has.</span>
     <span class="kw">pub</span> <span class="ident">n_parents</span>: <span class="ident">usize</span>,
+    <span class="doccomment">/// The number of direct child `Node`s this `Node has.</span>
     <span class="kw">pub</span> <span class="ident">n_children</span>: <span class="ident">Status</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
 }
 
@@ -2139,7 +2179,7 @@
     <span class="doccomment">//! &lt;tr&gt;&lt;td&gt;&lt;a href=&quot;struct.StoreState.html&quot;&gt;StoreState&lt;/a&gt;&lt;/td&gt;&lt;td&gt;&lt;center&gt;&amp;#x2713;&lt;/td&gt;&lt;td&gt;&lt;center&gt;&lt;/td&gt;&lt;td&gt;&lt;center&gt;&amp;#x2713;&lt;/td&gt;&lt;/tr&gt;</span>
     <span class="doccomment">//! &lt;/table&gt;</span>
     <span class="doccomment">//!</span>
-    <span class="doccomment">//! The mixins are used in constructing a [`Tree`] as follows:</span>
+    <span class="doccomment">//! The mixins are used in constructing a [`Tree`](crate::Tree) as follows:</span>
     <span class="doccomment">//!</span>
     <span class="doccomment">//! ```no_run</span>
     <span class="doccomment">//! # use recon_mcts::prelude::*;</span>
@@ -2158,13 +2198,6 @@
     <span class="doccomment">//! let tree = Tree::new(game, GetState, first_player, root_state);</span>
     <span class="doccomment">//! # }</span>
     <span class="doccomment">//! ```</span>
-    <span class="doccomment">//!</span>
-    <span class="doccomment">//! [`GetState`]: struct.GetState.html</span>
-    <span class="doccomment">//! [`HashOnly`]: struct.HashOnly.html</span>
-    <span class="doccomment">//! [`StoreState`]: struct.StoreState.html</span>
-    <span class="doccomment">//! [`Tree`]: ../struct.Tree.html</span>
-    <span class="doccomment">//! [`GameDynamics::State`]: ../trait.GameDynamics.html#associatedtype.State</span>
-    <span class="doccomment">//! [`GameDynamics::Player`]: ../trait.GameDynamics.html#associatedtype.Player</span>
 
     <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">Node</span>;
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">game_dynamics</span>::<span class="ident">GameDynamics</span>;
@@ -2180,16 +2213,19 @@
     <span class="comment">// Trait Pattern:</span>
     <span class="comment">// https://rust-lang.github.io/api-guidelines/future-proofing.html#c-sealed</span>
     <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">StateMemory</span> {
+        <span class="doccomment">/// The `State` of the `Node` as specified in [`GameDynamics::State`].</span>
         <span class="kw">type</span> <span class="ident">State</span>;
 
-        <span class="comment">// `PartialEq` for `Node`</span>
+        <span class="doccomment">/// Specifies the implementation of `PartialEq` for a `Node` with a particular</span>
+        <span class="doccomment">/// `StateMemory` mixin.</span>
         <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 
-        <span class="comment">// set how the state should be stored after a child is created</span>
+        <span class="doccomment">/// Associated function to set how the `State` should be stored after a child is created.</span>
         <span class="kw">fn</span> <span class="ident">modify_state</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">RwLock</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">State</span><span class="op">&gt;</span><span class="op">&gt;</span>);
     }
 
     <span class="doccomment">/// Memory usage is state dependent (could use lots of storage if states are large).</span>
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StoreState</span>;
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">S</span>, <span class="ident">A</span>, <span class="ident">I</span>, <span class="ident">GD</span>, <span class="ident">Q</span><span class="op">&gt;</span> <span class="ident">StateMemory</span> <span class="kw">for</span> <span class="ident">Node</span><span class="op">&lt;</span><span class="ident">GD</span>, <span class="ident">S</span>, <span class="ident">P</span>, <span class="ident">A</span>, <span class="ident">Q</span>, <span class="ident">I</span>, <span class="ident">StoreState</span><span class="op">&gt;</span>
     <span class="kw">where</span>
@@ -2201,13 +2237,14 @@
         <span class="kw">type</span> <span class="ident">State</span> <span class="op">=</span> <span class="ident">S</span>;
 
         <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-            <span class="self">self</span>.<span class="ident">player</span> <span class="op">=</span><span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">player</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">get_state</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">get_state</span>()
+            <span class="self">self</span>.<span class="ident">player</span> <span class="op">=</span><span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">player</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">get_state</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">get_state</span>()
         }
 
         <span class="kw">fn</span> <span class="ident">modify_state</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">RwLock</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">State</span><span class="op">&gt;</span><span class="op">&gt;</span>) {}
     }
 
     <span class="doccomment">/// Slower performance but better memory efficiency for large states.</span>
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GetState</span>;
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">S</span>, <span class="ident">A</span>, <span class="ident">I</span>, <span class="ident">GD</span>, <span class="ident">Q</span><span class="op">&gt;</span> <span class="ident">StateMemory</span> <span class="kw">for</span> <span class="ident">Node</span><span class="op">&lt;</span><span class="ident">GD</span>, <span class="ident">S</span>, <span class="ident">P</span>, <span class="ident">A</span>, <span class="ident">Q</span>, <span class="ident">I</span>, <span class="ident">GetState</span><span class="op">&gt;</span>
     <span class="kw">where</span>
@@ -2219,7 +2256,7 @@
         <span class="kw">type</span> <span class="ident">State</span> <span class="op">=</span> <span class="ident">S</span>;
 
         <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-            <span class="self">self</span>.<span class="ident">player</span> <span class="op">=</span><span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">player</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">get_state</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">get_state</span>()
+            <span class="self">self</span>.<span class="ident">player</span> <span class="op">=</span><span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">player</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">get_state</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">get_state</span>()
         }
 
         <span class="kw">fn</span> <span class="ident">modify_state</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">RwLock</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">State</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
@@ -2229,6 +2266,7 @@
 
     <span class="doccomment">/// There&#39;s a chance of hash collision, which would mean that a parent node connects to an</span>
     <span class="doccomment">/// incorrect child node.</span>
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HashOnly</span>;
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">S</span>, <span class="ident">A</span>, <span class="ident">I</span>, <span class="ident">GD</span>, <span class="ident">Q</span><span class="op">&gt;</span> <span class="ident">StateMemory</span> <span class="kw">for</span> <span class="ident">Node</span><span class="op">&lt;</span><span class="ident">GD</span>, <span class="ident">S</span>, <span class="ident">P</span>, <span class="ident">A</span>, <span class="ident">Q</span>, <span class="ident">I</span>, <span class="ident">HashOnly</span><span class="op">&gt;</span>
     <span class="kw">where</span>
@@ -2317,7 +2355,7 @@
             <span class="ident">prior</span>
         }
 
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wait</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>, <span class="ident">PoisonError</span><span class="op">&lt;</span><span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wait</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">bool</span><span class="op">&gt;</span>, <span class="ident">PoisonError</span><span class="op">&lt;</span><span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">bool</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">lk</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">mtx</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
             <span class="self">self</span>.<span class="ident">cv</span>.<span class="ident">wait_while</span>(<span class="ident">lk</span>, <span class="op">|</span><span class="ident">n</span><span class="op">|</span> <span class="op">!</span><span class="kw-2">*</span><span class="ident">n</span>)
         }
@@ -2402,7 +2440,7 @@
             <span class="comment">// checking this condition is sufficient as long as `next_unscored` is always called</span>
             <span class="comment">// before `scores_pending` such that `scores_pending == 0` implies the iterator is</span>
             <span class="comment">// exhausted</span>
-            <span class="self">self</span>.<span class="ident">unscored_done</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">scores_pending</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
+            <span class="self">self</span>.<span class="ident">unscored_done</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">scores_pending</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
         }
     }
 }
@@ -2519,7 +2557,7 @@
                 .<span class="ident">insert</span>(<span class="ident">ArcNode</span>::<span class="ident">downgrade</span>(<span class="ident">self_arc</span>)),
         };
 
-        <span class="ident">_r</span> <span class="kw-2">&amp;</span><span class="op">=</span> <span class="op">!</span><span class="ident">self_arc</span>
+        <span class="ident">_r</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident">self_arc</span>
             .<span class="ident">registered</span>
             .<span class="ident">compare_and_swap</span>(<span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="ident">Ordering</span>::<span class="ident">Relaxed</span>);
 
@@ -2709,12 +2747,19 @@
         <span class="ident">n_updates</span>
     }
 
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
     <span class="kw">fn</span> <span class="ident">apply_atomic</span>(
         <span class="ident">base</span>: <span class="kw-2">&amp;</span><span class="ident">AtomicUsize</span>,
-        <span class="ident">f_desired</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>,
         <span class="ident">order</span>: <span class="ident">Ordering</span>,
+        <span class="ident">f_desired</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="comment">// somewhat generic idea from https://software.intel.com/en-us/node/506125</span>
+        <span class="comment">// same as:</span>
+        <span class="comment">// base.fetch_update(order, order, |x| Some(f_desired(x)))</span>
+        <span class="comment">//     .ok()</span>
+        <span class="comment">//     .expect(&quot;method should always return a `Some`&quot;);</span>
+
+        <span class="comment">// base.load(order)</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cur</span> <span class="op">=</span> <span class="ident">base</span>.<span class="ident">load</span>(<span class="ident">order</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">desired</span> <span class="op">=</span> <span class="ident">f_desired</span>(<span class="ident">cur</span>);
         <span class="kw">while</span> <span class="ident">cur</span> <span class="op">!</span><span class="op">=</span> <span class="ident">desired</span> {
@@ -2737,13 +2782,14 @@
             .<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">w</span>)<span class="op">|</span> <span class="ident">WeakNode</span>::<span class="ident">upgrade</span>(<span class="ident">w</span>).<span class="ident">depth</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">Relaxed</span>))
             .<span class="ident">max</span>()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">new_depth</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">apply_atomic</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">depth</span>,
-            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">max</span>(<span class="ident">x</span>, <span class="ident">min_depth</span>),
-            <span class="ident">Ordering</span>::<span class="ident">Relaxed</span>,
-        );
+        <span class="self">self</span>.<span class="ident">depth</span>
+            .<span class="ident">fetch_update</span>(<span class="ident">Ordering</span>::<span class="ident">Relaxed</span>, <span class="ident">Ordering</span>::<span class="ident">Relaxed</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">max</span>(<span class="ident">x</span>, <span class="ident">min_depth</span>))
+            })
+            .<span class="ident">ok</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;method should always return a `Some`&quot;</span>);
 
-        <span class="prelude-val">Some</span>(<span class="ident">new_depth</span>)
+        <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">depth</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">Relaxed</span>))
     }
 
     <span class="kw">fn</span> <span class="ident">set_min_depth</span>(<span class="ident">self_arc</span>: <span class="kw-2">&amp;</span><span class="ident">ArcWrap</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
@@ -2835,6 +2881,7 @@
         <span class="ident">hasher</span>.<span class="ident">finish</span>()
     }
 
+    <span class="doccomment">/// Returns a [`NodeInfo`] with information about the `Node`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_node_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NodeInfo</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">P</span>, <span class="ident">Q</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">Q</span>: <span class="ident">Clone</span>,
@@ -2854,13 +2901,15 @@
 <span class="doccomment">/// A trait used to remove nodes from the transposition table that are no longer reachable from the</span>
 <span class="doccomment">/// root. Generally for internal use.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">OnDrop</span> {
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
     <span class="comment">// TODO: once stabilized, turn `self_arc` to `self` using `#![feature(arbitrary_self_types)]`;</span>
-    <span class="comment">// besides being being semantically more reflective of the intention, it will also make using</span>
+    <span class="comment">// besides being semantically more reflective of the intention, it will also make using</span>
     <span class="comment">// `GameDynamics` as a trait object easier because `OnDrop` currently requires types that</span>
     <span class="comment">// implement it to be `Sized` because of the `Self` parameter in accordance with object safety</span>
-    <span class="comment">// rules https://doc.rust-lang.org/unstable-book/language-features/arbitrary-self-types.html</span>
+    <span class="comment">// rules:</span>
+    <span class="comment">// https://doc.rust-lang.org/unstable-book/language-features/arbitrary-self-types.html</span>
     <span class="comment">// https://github.com/rust-lang/rfcs/blob/master/text/0255-object-safety.md</span>
-    <span class="kw">fn</span> <span class="ident">on_drop</span>(<span class="ident">self_arc</span>: <span class="ident">ArcWrap</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>);
+    <span class="kw">fn</span> <span class="ident">on_drop</span>(<span class="ident">self_arc</span>: <span class="kw-2">&amp;</span><span class="ident">ArcWrap</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>);
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">GD</span>, <span class="ident">S</span>, <span class="ident">P</span>, <span class="ident">A</span>, <span class="ident">Q</span>, <span class="ident">I</span>, <span class="ident">M</span><span class="op">&gt;</span> <span class="ident">OnDrop</span> <span class="kw">for</span> <span class="ident">Node</span><span class="op">&lt;</span><span class="ident">GD</span>, <span class="ident">S</span>, <span class="ident">P</span>, <span class="ident">A</span>, <span class="ident">Q</span>, <span class="ident">I</span>, <span class="ident">M</span><span class="op">&gt;</span>
@@ -2871,9 +2920,9 @@
     <span class="ident">S</span>: <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span>,
     <span class="ident">P</span>: <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">on_drop</span>(<span class="ident">self_arc</span>: <span class="ident">ArcWrap</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">on_drop</span>(<span class="ident">self_arc</span>: <span class="kw-2">&amp;</span><span class="ident">ArcWrap</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">children</span>) <span class="op">=</span> <span class="ident">self_arc</span>.<span class="ident">children</span>.<span class="ident">read</span>().<span class="ident">unwrap</span>().<span class="ident">as_map</span>() {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">children</span>.<span class="ident">is_empty</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">self_arc</span>.<span class="ident">state</span>.<span class="ident">read</span>().<span class="ident">unwrap</span>().<span class="ident">is_none</span>() {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">children</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">self_arc</span>.<span class="ident">state</span>.<span class="ident">read</span>().<span class="ident">unwrap</span>().<span class="ident">is_none</span>() {
                 <span class="comment">// the orphan must have a state because it is needed when the orphan&#39;s children</span>
                 <span class="comment">// remove the orphan as a parent; `Node::get_state` checks the node&#39;s state, so we</span>
                 <span class="comment">// have to check the status of the node&#39;s state with only a read lock first, then,</span>
@@ -2911,7 +2960,7 @@
                     .<span class="ident">parents</span>
                     .<span class="ident">write</span>()
                     .<span class="ident">unwrap</span>()
-                    .<span class="ident">remove</span>(<span class="kw-2">&amp;</span>(<span class="ident">a</span>, <span class="ident">ArcNode</span>::<span class="ident">downgrade</span>(<span class="kw-2">&amp;</span><span class="ident">self_arc</span>)));
+                    .<span class="ident">remove</span>(<span class="kw-2">&amp;</span>(<span class="ident">a</span>, <span class="ident">ArcNode</span>::<span class="ident">downgrade</span>(<span class="ident">self_arc</span>)));
 
                 <span class="macro">debug_assert</span><span class="macro">!</span>(
                     <span class="ident">c</span>.<span class="ident">state</span>.<span class="ident">read</span>().<span class="ident">unwrap</span>().<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">c</span>.<span class="ident">parents</span>.<span class="ident">read</span>().<span class="ident">unwrap</span>().<span class="ident">is_empty</span>(),
@@ -2924,7 +2973,7 @@
                         could not remove dropped node as child&#39;s parents:\n\
                         \tchild {:p} parent {:p}\
                     &quot;</span>,
-                    <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">c</span>.<span class="ident">inner</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">self_arc</span>,
+                    <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">c</span>.<span class="ident">inner</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">self_arc</span>,
                 );
             }
         }
@@ -2934,7 +2983,7 @@
                 .<span class="ident">registry</span>
                 .<span class="ident">write</span>()
                 .<span class="ident">unwrap</span>()
-                .<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">ArcNode</span>::<span class="ident">downgrade</span>(<span class="kw-2">&amp;</span><span class="ident">self_arc</span>));
+                .<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">ArcNode</span>::<span class="ident">downgrade</span>(<span class="ident">self_arc</span>));
             <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">_r</span>, <span class="string">&quot;could not remove node&quot;</span>);
         } <span class="kw">else</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
@@ -3033,7 +3082,7 @@
     <span class="ident">S</span>: <span class="ident">Debug</span>,
     <span class="ident">P</span>: <span class="ident">Debug</span>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Node&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;ptr&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:p}&quot;</span>, <span class="self">self</span>))
             .<span class="ident">field</span>(<span class="string">&quot;hash&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">hash</span>)
@@ -3047,10 +3096,14 @@
 }
 
 <span class="comment">// Unlike `WeakNode` for which hash and equality comparisons are necessary, `ArcNode` is not</span>
-<span class="comment">// required as a newtype other for implementation of `Drop` where we rely on `Arc::strong_count`</span>
+<span class="comment">// required as a newtype other than for implementation of `Drop` where we rely on</span>
+<span class="comment">// `Arc::strong_count`</span>
+<span class="doccomment">/// Convenience type alias.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ArcNode</span><span class="op">&lt;</span><span class="ident">GD</span>, <span class="ident">S</span>, <span class="ident">P</span>, <span class="ident">A</span>, <span class="ident">Q</span>, <span class="ident">I</span>, <span class="ident">M</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">ArcWrap</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&lt;</span><span class="ident">GD</span>, <span class="ident">S</span>, <span class="ident">P</span>, <span class="ident">A</span>, <span class="ident">Q</span>, <span class="ident">I</span>, <span class="ident">M</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="doccomment">/// Newtype to allow for a custom `Drop` implementation that also gives access to the</span>
+<span class="doccomment">/// `Arc::strong_count`.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ArcWrap</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">OnDrop</span><span class="op">&gt;</span> {
     <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 }
@@ -3072,8 +3125,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">OnDrop</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">ArcWrap</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">if</span> <span class="ident">Arc</span>::<span class="ident">strong_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
-            <span class="kw">let</span> <span class="ident">self_arc</span> <span class="op">=</span> <span class="ident">ArcWrap</span>::<span class="ident">clone</span>(<span class="self">self</span>);
-            <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">OnDrop</span><span class="op">&gt;</span>::<span class="ident">on_drop</span>(<span class="ident">self_arc</span>)
+            <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">OnDrop</span><span class="op">&gt;</span>::<span class="ident">on_drop</span>(<span class="self">self</span>)
         }
     }
 }
@@ -3089,9 +3141,11 @@
 <span class="comment">// map, its hash value cannot change, in the case of a `Node` the values of `hash` and its `state`</span>
 <span class="comment">// may also not be changed, though a user could do so if `GameDynamics::State` has interior</span>
 <span class="comment">// mutability; it&#39;s the user&#39;s responsibility not to mutate the state</span>
+<span class="doccomment">/// Convenience type alias.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">WeakNode</span><span class="op">&lt;</span><span class="ident">GD</span>, <span class="ident">S</span>, <span class="ident">P</span>, <span class="ident">A</span>, <span class="ident">Q</span>, <span class="ident">I</span>, <span class="ident">M</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">WeakWrap</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&lt;</span><span class="ident">GD</span>, <span class="ident">S</span>, <span class="ident">P</span>, <span class="ident">A</span>, <span class="ident">Q</span>, <span class="ident">I</span>, <span class="ident">M</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="doccomment">/// Newtype wrapping a [`std::sync::Weak`] with custom `Hash` and `Eq` implementations.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WeakWrap</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> {
     <span class="ident">inner</span>: <span class="ident">Weak</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 }
@@ -3147,8 +3201,13 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="doccomment">/// Contains information about a `Tree`&#39;s registry.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RegistryInfo</span> {
+    <span class="doccomment">/// The number of times an action applied to a leaf node has resulted in a state that already</span>
+    <span class="doccomment">/// existed in the [`Tree`].</span>
     <span class="kw">pub</span> <span class="ident">hits</span>: <span class="ident">AtomicUsize</span>,
+    <span class="doccomment">/// The number of times an action applied to a leaf node has resulted in a state that is new in</span>
+    <span class="doccomment">/// the [`Tree`].</span>
     <span class="kw">pub</span> <span class="ident">misses</span>: <span class="ident">AtomicUsize</span>,
+    <span class="doccomment">/// The number of nodes in the [`Tree`].</span>
     <span class="kw">pub</span> <span class="ident">len</span>: <span class="ident">AtomicUsize</span>,
 }
 
@@ -3527,7 +3586,7 @@
     <span class="kw">fn</span> <span class="ident">test_can_be_dyn</span>() {
         <span class="kw">fn</span> <span class="ident">test_trait_object_feasible</span>(
             <span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">SearchTree</span><span class="op">&lt;</span><span class="ident">GD</span> <span class="op">=</span> <span class="kw">impl</span> <span class="ident">GameDynamics</span>, <span class="ident">Memory</span> <span class="op">=</span> <span class="kw">impl</span> <span class="ident">StateMemory</span><span class="op">&gt;</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">SearchTree</span><span class="op">&lt;</span><span class="ident">GD</span> <span class="op">=</span> <span class="kw">impl</span> <span class="ident">GameDynamics</span>, <span class="ident">Memory</span> <span class="op">=</span> <span class="kw">impl</span> <span class="ident">StateMemory</span><span class="op">&gt;</span> {
+        ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">dyn</span> <span class="ident">SearchTree</span><span class="op">&lt;</span><span class="ident">GD</span> <span class="op">=</span> <span class="kw">impl</span> <span class="ident">GameDynamics</span>, <span class="ident">Memory</span> <span class="op">=</span> <span class="kw">impl</span> <span class="ident">StateMemory</span><span class="op">&gt;</span> {
             <span class="comment">// check that we can create a `SearchTree` trait object; details on object safety</span>
             <span class="comment">// https://github.com/rust-lang/rfcs/blob/master/text/0255-object-safety.md</span>
             <span class="ident">t</span>
