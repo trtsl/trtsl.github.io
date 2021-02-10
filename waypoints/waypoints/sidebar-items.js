@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Waypoints","Represents a series of waypoints."]]});
