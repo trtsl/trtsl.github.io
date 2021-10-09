@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["waypoints"] = [{"text":"impl !RefUnwindSafe for Waypoints","synthetic":true,"types":[]}];
+implementors["waypoints"] = [{"text":"impl !<a class=\"trait\" href=\"https://doc.rust-lang.org/1.55.0/std/panic/trait.RefUnwindSafe.html\" title=\"trait std::panic::RefUnwindSafe\">RefUnwindSafe</a> for <a class=\"struct\" href=\"waypoints/struct.Waypoints.html\" title=\"struct waypoints::Waypoints\">Waypoints</a>","synthetic":true,"types":["waypoints::Waypoints"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

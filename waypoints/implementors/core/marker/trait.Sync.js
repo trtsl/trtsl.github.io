@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["waypoints"] = [{"text":"impl Sync for Waypoints","synthetic":true,"types":[]}];
+implementors["waypoints"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.55.0/core/marker/trait.Sync.html\" title=\"trait core::marker::Sync\">Sync</a> for <a class=\"struct\" href=\"waypoints/struct.Waypoints.html\" title=\"struct waypoints::Waypoints\">Waypoints</a>","synthetic":true,"types":["waypoints::Waypoints"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
